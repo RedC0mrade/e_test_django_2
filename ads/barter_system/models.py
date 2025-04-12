@@ -1,0 +1,77 @@
+from django.db import models
+from django.contrib.auth.models import User
+from typing import Optional, ClassVar
+
+
+class Ad(models.Model):
+    """
+    Модель объявления
+    """
+
+    class Category_status(models.TextChoices):
+        ELECTRONICS = "electronics", "Электроника"
+        CLOTHING = "clothing", "Одежда"
+        BOOKS = "books", "Книги"
+        OTHER = "other", "Другое"
+
+    class Condition_status(models.TextChoices):
+        NEW = "new", "Новое"
+        USED = "used", "Б/у"
+        DEFECTIVE = "defective", "С дефектом"
+
+    Category: str = models.CharField(
+        max_length=20,
+        choices=Category_status.choices,
+        default=Category_status.OTHER,
+        verbose_name="Категория товара",
+    )
+
+    Condition: str = models.CharField(
+        max_length=20,
+        choices=Condition_status.choices,
+        default=Condition_status.USED,
+        verbose_name="Состояние товара",
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+    )
+
+    title: str = models.CharField(
+        max_length=200,
+        verbose_name="Заголовок",
+    )
+
+    description: str = models.TextField(
+        max_length=1000,
+        verbose_name="Описание",
+    )
+
+    image_url: Optional[str] = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name="Ссылка на изображение",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+    )
+
+    class Meta:
+        verbose_name: str = "Объявление"
+        verbose_name_plural: str = "Объявления"
+        ordering: ClassVar[list[str]] = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.title} (Пользователь: {self.user.username})"
+
+    @property
+    def short_description(self) -> str:
+        """Сокращенное описание (первые 50 символов)"""
+        return self.description[:50] + (
+            "..." if len(self.description) > 50 else ""
+        )
