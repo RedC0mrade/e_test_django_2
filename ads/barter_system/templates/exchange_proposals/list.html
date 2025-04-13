@@ -1,0 +1,11 @@
+<h1>Предложения обмена</h1>
+<ul>
+  {% for proposal in proposals %}
+    <li>
+      {{ proposal.ad_sender.title }} → {{ proposal.ad_receiver.title }}
+      ({{ proposal.get_status_display }})
+      [<a href="{% url 'exchangeproposal_detail' proposal.pk %}">Подробнее</a>]
+    </li>
+  {% endfor %}
+</ul>
+<a href="{% url 'exchangeproposal_create' %}">Создать новое предложение</a>

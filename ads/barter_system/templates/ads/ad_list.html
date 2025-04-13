@@ -1,0 +1,47 @@
+<h2>Объявления</h2>
+
+<form method="get">
+    <input type="text" name="q" placeholder="Поиск..." value="{{ request.GET.q }}">
+    <select name="category">
+        <option value="">Категория</option>
+        {% for key, val in ads.0.Category_status.choices %}
+            <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>{{ val }}</option>
+        {% endfor %}
+    </select>
+    <select name="condition">
+        <option value="">Состояние</option>
+        {% for key, val in ads.0.Condition_status.choices %}
+            <option value="{{ key }}" {% if request.GET.condition == key %}selected{% endif %}>{{ val }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Фильтр</button>
+</form>
+
+<ul>
+    {% for ad in ads %}
+        <li>
+            <h3>{{ ad.title }}</h3>
+            <p>{{ ad.short_description }}</p>
+            {% if ad.image_url %}
+                <img src="{{ ad.image_url }}" width="150">
+            {% endif %}
+            <p>Категория: {{ ad.get_Category_display }}</p>
+            <p>Состояние: {{ ad.get_Condition_display }}</p>
+            <p>Дата: {{ ad.created_at }}</p>
+        </li>
+    {% empty %}
+        <li>Нет объявлений</li>
+    {% endfor %}
+</ul>
+
+{% if is_paginated %}
+    <div>
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">&lt; Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Вперёд &gt;</a>
+        {% endif %}
+    </div>
+{% endif %}

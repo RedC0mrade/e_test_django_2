@@ -20,13 +20,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-g1bqyid(r%iai#ou2lk!tdmh2d3t3te@^oqb_@=7_@ffi(45_#"
+SECRET_KEY = (
+    "django-insecure-g1bqyid(r%iai#ou2lk!tdmh2d3t3te@^oqb_@=7_@ffi(45_#"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # Application definition
 
@@ -37,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "barter_system.apps.BarterSystemConfig"
+    "barter_system.apps.BarterSystemConfig",
 ]
 
 MIDDLEWARE = [

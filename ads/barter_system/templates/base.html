@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Обмен товарами{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/">Обмен товарами</a></h1>
+        <nav>
+            {% if user.is_authenticated %}
+                <span>Привет, {{ user.username }}!</span>
+                <a href="{% url 'logout' %}">Выйти</a>
+            {% else %}
+                <a href="{% url 'login' %}">Войти</a>
+                <a href="{% url 'signup' %}">Регистрация</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; {{ year|default:"2025" }} Обмен товарами</p>
+    </footer>
+</body>
+</html>
