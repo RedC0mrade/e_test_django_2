@@ -19,14 +19,14 @@ class Ad(models.Model):
         USED = "used", "Б/у"
         DEFECTIVE = "defective", "С дефектом"
 
-    Category: str = models.CharField(
+    category: str = models.CharField(
         max_length=20,
         choices=Category_status.choices,
         default=Category_status.OTHER,
         verbose_name="Категория товара",
     )
 
-    Condition: str = models.CharField(
+    condition: str = models.CharField(
         max_length=20,
         choices=Condition_status.choices,
         default=Condition_status.USED,
