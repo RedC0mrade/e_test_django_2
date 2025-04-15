@@ -1,18 +1,27 @@
 from django.contrib import admin
-from django.http import HttpRequest
-from django.utils.safestring import SafeString
-from django.db.models.query import QuerySet
-
 from .models import Ad, ExchangeProposal
+
+
+class ExchangeProposalInline(admin.TabularInline):
+    """
+    Inline-представление предложений обмена в админке объявлений.
+    """
+
+    model = ExchangeProposal
+    fk_name = "ad_sender"
+    extra = 0
+    fields = ("ad_receiver", "status", "comment", "created_at")
+    readonly_fields = ("created_at",)
+    show_change_link = True
 
 
 @admin.register(Ad)
 class AdAdmin(admin.ModelAdmin):
     """
-    Админ модель объявления.
+    Админ-модель объявления.
     """
 
-    list_display: tuple[str, ...] = (
+    list_display = (
         "title",
         "user",
         "category",
@@ -20,127 +29,66 @@ class AdAdmin(admin.ModelAdmin):
         "short_description",
         "created_at",
     )
-    list_filter: tuple[str, ...] = (
+    list_filter = (
         "category",
         "condition",
         "created_at",
         "user",
     )
-    search_fields: tuple[str, ...] = (
+    search_fields = (
         "title",
         "description",
         "user__username",
     )
-    readonly_fields: tuple[str, ...] = ("created_at",)
-    ordering: list[str] = ["-created_at"]
+    readonly_fields = ("created_at",)
+    ordering = ["-created_at"]
+    inlines = [ExchangeProposalInline]
+    autocomplete_fields = ["user"]
 
 
 @admin.register(ExchangeProposal)
 class ExchangeProposalAdmin(admin.ModelAdmin):
     """
-    Админ модель предложениями обмена.
+    Админ-модель для предложений обмена.
     """
 
-    list_display: tuple[str, ...] = (
+    list_display = (
         "id",
-        "ad_sender_display",
-        "ad_receiver_display",
+        "get_ad_sender",
+        "get_ad_receiver",
         "status",
-        "created_at",
-        "short_comment",
-    )
-
-    list_filter: tuple[str, ...] = (
-        "status",
+        "comment",
         "created_at",
     )
-
-    search_fields: tuple[str, ...] = (
+    list_filter = (
+        "status",
+        "created_at",
+    )
+    search_fields = (
         "ad_sender__title",
         "ad_sender__user__username",
         "ad_receiver__title",
         "ad_receiver__user__username",
         "comment",
     )
+    readonly_fields = ("created_at",)
+    ordering = ("-created_at",)
+    list_select_related = (
+        "ad_sender",
+        "ad_sender__user",
+        "ad_receiver",
+        "ad_receiver__user",
+    )
+    autocomplete_fields = ["ad_sender", "ad_receiver"]
 
-    readonly_fields: tuple[str, ...] = ("created_at",)
-    ordering: list[str] = ["-created_at"]
+    def get_ad_sender(self, obj):
+        return f"{obj.ad_sender.title} (ID: {obj.ad_sender.id}, Пользователь: {obj.ad_sender.user.username})"
 
-    def ad_sender_display(self, obj: ExchangeProposal) -> SafeString:
-        """
-        Форматированное отображение объявления отправителя.
-        
-        Args:
-            obj: Экземпляр модели ExchangeProposal
-            
-        Returns:
-            HTML-безопасная строка с информацией об объявлении
-        """
-        return admin.utils.display_for_value(f"{obj.ad_sender.title} (ID: {obj.ad_sender.id})")
+    get_ad_sender.short_description = "Объявление отправителя"
+    get_ad_sender.admin_order_field = "ad_sender__title"
 
-    ad_sender_display.short_description = "Объявление отправителя"
+    def get_ad_receiver(self, obj):
+        return f"{obj.ad_receiver.title} (ID: {obj.ad_receiver.id}, Пользователь: {obj.ad_receiver.user.username})"
 
-    def ad_receiver_display(self, obj: ExchangeProposal) -> SafeString:
-        """
-        Форматированное отображение объявления получателя.
-        
-        Args:
-            obj: Экземпляр модели ExchangeProposal
-            
-        Returns:
-            HTML-безопасная строка с информацией об объявлении
-        """
-        return admin.utils.display_for_value(f"{obj.ad_receiver.title} (ID: {obj.ad_receiver.id})")
-
-    ad_receiver_display.short_description = "Объявление получателя"
-
-    def short_comment(self, obj: ExchangeProposal) -> str:
-        """
-        Сокращенная версия комментария для отображения в списке.
-        
-        Args:
-            obj: Экземпляр модели ExchangeProposal
-            
-        Returns:
-            Сокращенный комментарий (первые 50 символов)
-        """
-        return obj.comment[:50] + "..." if len(obj.comment) > 50 else obj.comment
-
-    short_comment.short_description = "Комментарий"
-
-    def get_queryset(self, request: HttpRequest) -> QuerySet[ExchangeProposal]:
-        """
-        Оптимизирует запрос к БД с помощью select_related.
-        
-        Args:
-            request: Объект HTTP-запроса
-            
-        Returns:
-            QuerySet с предложениями обмена, включая связанные объявления
-        """
-        return super().get_queryset(request).select_related(
-            "ad_sender",
-            "ad_sender__user",
-            "ad_receiver",
-            "ad_receiver__user",
-        )
-
-    def get_readonly_fields(
-        self, 
-        request: HttpRequest, 
-        obj: ExchangeProposal | None = None
-    ) -> tuple[str, ...]:
-        """
-        Определяет, какие поля должны быть только для чтения.
-        Для существующих объектов запрещает изменение объявлений.
-        
-        Args:
-            request: Объект HTTP-запроса
-            obj: Экземпляр модели или None для нового объекта
-            
-        Returns:
-            Кортеж имен полей только для чтения
-        """
-        if obj:  # Если объект уже существует
-            return self.readonly_fields + ("ad_sender", "ad_receiver")
-        return self.readonly_fields
+    get_ad_receiver.short_description = "Объявление получателя"
+    get_ad_receiver.admin_order_field = "ad_receiver__title"
